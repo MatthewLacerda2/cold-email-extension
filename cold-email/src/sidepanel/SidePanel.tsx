@@ -20,6 +20,35 @@ export const SidePanel = () => {
     keywords: []
   })
 
+  // Function to format the email content with bold text and standardize signature
+  const formatEmailContent = (text: string) => {
+    // Replace text between double asterisks with bold text
+    let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Replace signature with "Nilg.AI"
+    const signaturePatterns = [
+      /Sincerely,[\s\S]*$/i,
+      /Best regards,[\s\S]*$/i,
+      /Regards,[\s\S]*$/i,
+      /Best,[\s\S]*$/i,
+      /Yours truly,[\s\S]*$/i,
+      /Thank you,[\s\S]*$/i
+    ];
+    
+    for (const pattern of signaturePatterns) {
+      if (pattern.test(formattedText)) {
+        formattedText = formattedText.replace(pattern, match => {
+          // Get just the greeting part (e.g., "Sincerely,")
+          const greeting = match.split(/\r?\n/)[0];
+          return `${greeting}\nNilg.AI`;
+        });
+        break; // Stop after first match
+      }
+    }
+    
+    return formattedText;
+  };
+
   useEffect(() => {
     // Get the URL of the current active tab when the panel opens
     const fetchContent = async () => {
@@ -106,21 +135,21 @@ export const SidePanel = () => {
 
   return (
     <main className="content-viewer">
-      <h3>Cold Email Generator</h3>
-      
+      <h3 className="app-title">Cold Email Generator</h3>      
       {isLoading && (
         <div className="loading">
           <div className="loading-spinner"></div>
           <div className="loading-text">{loadingStatus}</div>
         </div>
-      )}
-      
-      {error && <div className="error">{error}</div>}
-      
+      )}      
+      {error && <div className="error">{error}</div>}      
       {!isLoading && !error && (
         <div className="content-container">
           <div className="content-label">Generated Email:</div>
-          <pre className="content-display">{content}</pre>
+          <div 
+            className="formatted-email"
+            dangerouslySetInnerHTML={{ __html: formatEmailContent(content) }}
+          />
         </div>
       )}
     </main>
