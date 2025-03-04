@@ -196,7 +196,7 @@ export const SidePanel = () => {
           ) : (
             <div 
               className="formatted-email"
-              dangerouslySetInnerHTML={{ __html: formatEmailContent(content) }}
+              dangerouslySetInnerHTML={{ __html: formatEmailContent(editableContent) }}
             />
           )}
         </div>
