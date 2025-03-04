@@ -16,6 +16,7 @@ export const SidePanel = () => {
   const [error, setError] = useState<string | null>(null)
   const [copySuccess, setCopySuccess] = useState<boolean>(false)
   const [editableContent, setEditableContent] = useState<string>('')
+  const [isEditMode, setIsEditMode] = useState<boolean>(true)
   const [metadata, setMetadata] = useState<PageMetadata>({
     title: '',
     description: '',
@@ -153,26 +154,43 @@ export const SidePanel = () => {
 
   return (
     <main className="content-viewer">
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-        <button 
-          onClick={fetchContent} 
-          className="reload-button"
-          title="Reload content from current page"
-          style={{ 
-            marginRight: '10px', 
-            background: 'none', 
-            border: 'none', 
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <button 
+            onClick={fetchContent} 
+            className="reload-button"
+            title="Reload content from current page"
+            style={{ 
+              marginRight: '10px', 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              fontSize: '26px',
+              color: '#FF8C00',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0'
+            }}
+          >
+            ⟳
+          </button>
+          <h3 className="app-title"><strong>Cold Email Generator</strong></h3>
+        </div>
+        <button
+          onClick={() => setIsEditMode(!isEditMode)}
+          title={isEditMode ? "Switch to preview mode" : "Switch to edit mode"}
+          style={{
+            background: 'none',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '4px 8px',
             cursor: 'pointer',
-            fontSize: '26px',
-            color: '#FF8C00',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0'
+            fontSize: '12px',
+            color: isEditMode ? '#4a90e2' : '#666'
           }}
         >
-          🔄
+          {isEditMode ? "Preview" : "Edit"}
         </button>
-        <h3 className="app-title"><strong>Cold Email Generator</strong></h3>
       </div>
       
       {isLoading && (
@@ -195,13 +213,20 @@ export const SidePanel = () => {
               {copySuccess ? '✓' : '📋'}
             </button>
           </div>
-          <textarea
-            className="editable-email"
-            value={editableContent}
-            onChange={handleContentChange}
-            rows={15}
-            style={{ resize: 'none' }}
-          />
+          {isEditMode ? (
+            <textarea
+              className="editable-email"
+              value={editableContent}
+              onChange={handleContentChange}
+              rows={15}
+              style={{ resize: 'none' }}
+            />
+          ) : (
+            <div 
+              className="formatted-email"
+              dangerouslySetInnerHTML={{ __html: formatEmailContent(content) }}
+            />
+          )}
         </div>
       )}
     </main>
