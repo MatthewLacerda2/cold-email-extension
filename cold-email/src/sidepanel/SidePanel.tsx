@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { fetchWebpageContent } from '../contentScript/r_jina_ai'
 import { generateEmailFromWebpage } from '../contentScript/gemini'
+import { 
+  formatEmailContent, 
+  htmlToPlainText, 
+  copyToClipboard, 
+  getActiveTab, 
+  extractPageMetadata,
+  PageMetadata 
+} from '../utils'
 import './SidePanel.css'
-
-interface PageMetadata {
-  title: string;
-  description: string;
-  keywords: string[];
-}
 
 export const SidePanel = () => {
   const [content, setContent] = useState<string>('')
@@ -23,43 +25,16 @@ export const SidePanel = () => {
     keywords: []
   })
 
-  const formatEmailContent = (text: string) => {
-    let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    const signaturePatterns = [
-      /Sincerely,[\s\S]*$/i,
-      /Best regards,[\s\S]*$/i,
-      /Regards,[\s\S]*$/i,
-      /Best,[\s\S]*$/i,
-      /Yours truly,[\s\S]*$/i,
-      /Thank you,[\s\S]*$/i
-    ];
-    
-    for (const pattern of signaturePatterns) {
-      if (pattern.test(formattedText)) {
-        formattedText = formattedText.replace(pattern, match => {
-          const greeting = match.split(/\r?\n/)[0];
-          return `${greeting} Nilg.AI`;
-        });
-        break; // Stop after first match
-      }
-    }
-    
-    return formattedText;
-  };
-
   useEffect(() => {
     if (content) {
       // Convert HTML to plain text for editing
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = formatEmailContent(content);
-      setEditableContent(tempDiv.textContent || tempDiv.innerText || '');
+      setEditableContent(htmlToPlainText(formatEmailContent(content)));
     }
   }, [content]);
 
-  const copyToClipboard = () => {
+  const handleCopyToClipboard = () => {
     // Use the edited content if available
-    navigator.clipboard.writeText(editableContent)
+    copyToClipboard(editableContent)
       .then(() => {
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
@@ -80,11 +55,10 @@ export const SidePanel = () => {
     setError(null)
     
     try {
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
-      const currentTab = tabs[0]
-      const currentUrl = currentTab?.url
+      const currentTab = await getActiveTab();
+      const currentUrl = currentTab?.url;
       
-      if (currentUrl) {
+      if (currentUrl && currentTab) {
         setMetadata({
           title: currentTab.title || 'No title available',
           description: '',
@@ -94,31 +68,13 @@ export const SidePanel = () => {
         // Get page description and keywords by executing script in the tab
         if (currentTab.id) {
           try {
-            const results = await chrome.scripting.executeScript({
-              target: { tabId: currentTab.id },
-              func: () => {
-                const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || 
-                                       document.querySelector('meta[property="og:description"]')?.getAttribute('content') || 
-                                       '';
-                
-                const metaKeywords = document.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
-                const keywords = metaKeywords.split(',').map(k => k.trim()).filter(Boolean);
-                
-                return {
-                  description: metaDescription,
-                  keywords: keywords
-                };
-              }
-            });
+            const metadataResult = await extractPageMetadata(currentTab.id);
             
-            if (results && results[0]?.result) {
-              const data = results[0].result as { description: string, keywords: string[] };
-              setMetadata(prev => ({
-                ...prev,
-                description: data.description,
-                keywords: data.keywords
-              }));
-            }
+            setMetadata(prev => ({
+              ...prev,
+              description: metadataResult.description,
+              keywords: metadataResult.keywords
+            }));
           } catch (scriptError) {
             console.warn('Could not execute script to get metadata:', scriptError);
           }
@@ -223,7 +179,7 @@ export const SidePanel = () => {
             <div className="content-label">Generated Email:</div>
             <button 
               className="copy-button" 
-              onClick={copyToClipboard}
+              onClick={handleCopyToClipboard}
               title="Copy to clipboard"
             >
               {copySuccess ? '✓' : '📋'}
