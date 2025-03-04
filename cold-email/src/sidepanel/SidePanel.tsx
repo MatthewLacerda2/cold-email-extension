@@ -15,6 +15,7 @@ export const SidePanel = () => {
   const [loadingStatus, setLoadingStatus] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [copySuccess, setCopySuccess] = useState<boolean>(false)
+  const [editableContent, setEditableContent] = useState<string>('')
   const [metadata, setMetadata] = useState<PageMetadata>({
     title: '',
     description: '',
@@ -49,12 +50,20 @@ export const SidePanel = () => {
     return formattedText;
   };
 
+  // Update editableContent when content changes
+  useEffect(() => {
+    if (content) {
+      // Convert HTML to plain text for editing
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = formatEmailContent(content);
+      setEditableContent(tempDiv.textContent || tempDiv.innerText || '');
+    }
+  }, [content]);
+
   // Function to copy email content to clipboard
   const copyToClipboard = () => {
-    // Get plain text version of the formatted email (remove HTML tags)
-    const plainText = content.replace(/<[^>]*>/g, '');
-    
-    navigator.clipboard.writeText(plainText)
+    // Use the edited content if available
+    navigator.clipboard.writeText(editableContent)
       .then(() => {
         setCopySuccess(true);
         // Reset success message after 2 seconds
@@ -63,6 +72,11 @@ export const SidePanel = () => {
       .catch(err => {
         console.error('Failed to copy: ', err);
       });
+  };
+
+  // Handle content changes in the editable area
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditableContent(e.target.value);
   };
 
   useEffect(() => {
@@ -151,7 +165,7 @@ export const SidePanel = () => {
 
   return (
     <main className="content-viewer">
-      <h3 className="app-title">Cold Email Generator</h3>      
+      <h3 className="app-title"><strong>Cold Email Generator</strong></h3>
       {isLoading && (
         <div className="loading">
           <div className="loading-spinner"></div>
@@ -171,9 +185,12 @@ export const SidePanel = () => {
               {copySuccess ? '✓' : '📋'}
             </button>
           </div>
-          <div 
-            className="formatted-email"
-            dangerouslySetInnerHTML={{ __html: formatEmailContent(content) }}
+          <textarea
+            className="editable-email"
+            value={editableContent}
+            onChange={handleContentChange}
+            rows={15}
+            style={{ resize: 'none' }}
           />
         </div>
       )}
