@@ -18,3 +18,5 @@ $ npm run build
 
 1. At `r_jina_ai.ts`, we fetch from `https://r.jina.ai/`, which takes a given URL and returns it's content in a nice format friendly to LLMs
 2. At `gemini.ts`, we send a prompt to Google Gemini's API to write a cold-email for us, alongside the page's content
+
+The rest of the action happens in the SidePanel.tsx and .css. There isn't much in the other project files

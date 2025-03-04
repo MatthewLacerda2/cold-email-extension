@@ -38,9 +38,8 @@ export const SidePanel = () => {
     for (const pattern of signaturePatterns) {
       if (pattern.test(formattedText)) {
         formattedText = formattedText.replace(pattern, match => {
-          // Get just the greeting part (e.g., "Sincerely,")
           const greeting = match.split(/\r?\n/)[0];
-          return `${greeting}\nNilg.AI`;
+          return `${greeting} Nilg.AI`;
         });
         break; // Stop after first match
       }
@@ -53,7 +52,7 @@ export const SidePanel = () => {
     // Get the URL of the current active tab when the panel opens
     const fetchContent = async () => {
       setIsLoading(true)
-      setLoadingStatus('Waiting for Jina...')
+      setLoadingStatus('Reading the page...')
       setError(null)
       
       try {
@@ -109,7 +108,7 @@ export const SidePanel = () => {
           const pageContent = await fetchWebpageContent(currentUrl)
           
           // Now generate email with Gemini
-          setLoadingStatus('Waiting for Gemini...')
+          setLoadingStatus('Google Gemini is thinking...')
           const generatedEmail = await generateEmailFromWebpage(
             metadata.title,
             metadata.description,
