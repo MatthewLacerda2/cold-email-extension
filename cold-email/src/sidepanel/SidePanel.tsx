@@ -14,6 +14,7 @@ export const SidePanel = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [loadingStatus, setLoadingStatus] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
+  const [copySuccess, setCopySuccess] = useState<boolean>(false)
   const [metadata, setMetadata] = useState<PageMetadata>({
     title: '',
     description: '',
@@ -46,6 +47,22 @@ export const SidePanel = () => {
     }
     
     return formattedText;
+  };
+
+  // Function to copy email content to clipboard
+  const copyToClipboard = () => {
+    // Get plain text version of the formatted email (remove HTML tags)
+    const plainText = content.replace(/<[^>]*>/g, '');
+    
+    navigator.clipboard.writeText(plainText)
+      .then(() => {
+        setCopySuccess(true);
+        // Reset success message after 2 seconds
+        setTimeout(() => setCopySuccess(false), 2000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+      });
   };
 
   useEffect(() => {
@@ -144,7 +161,16 @@ export const SidePanel = () => {
       {error && <div className="error">{error}</div>}      
       {!isLoading && !error && (
         <div className="content-container">
-          <div className="content-label">Generated Email:</div>
+          <div className="content-header">
+            <div className="content-label">Generated Email:</div>
+            <button 
+              className="copy-button" 
+              onClick={copyToClipboard}
+              title="Copy to clipboard"
+            >
+              {copySuccess ? '✓' : '📋'}
+            </button>
+          </div>
           <div 
             className="formatted-email"
             dangerouslySetInnerHTML={{ __html: formatEmailContent(content) }}
