@@ -1,0 +1,65 @@
+name: Build NPM Project
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'cold-email/**'
+  pull_request_target: 
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'cold-email/**'
+
+jobs:
+  build:
+    if: github.event.pull_request.draft == false
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'cold-email/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: ./cold-email
+        run: npm ci
+      
+      - name: Build project
+        working-directory: ./cold-email
+        id: build
+        run: npm run build
+        continue-on-error: true
+      
+      - name: Check build status and convert PR to draft if failed
+        if: steps.build.outcome == 'failure'
+        uses: octokit/request-action@v2.x
+        with:
+          route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.repository.name }}
+          pull_number: ${{ github.event.pull_request.number }}
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Comment on PR if build failed
+        if: steps.build.outcome == 'failure'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ The build failed! This PR has been marked as a draft. Please fix the build issues before requesting review.'
+            })
+      
+      - name: Fail workflow if build failed
+        if: steps.build.outcome == 'failure'
+        run: exit 1
