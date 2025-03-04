@@ -102,16 +102,17 @@ body, html {
   overflow-y: auto;
   flex-grow: 1;
   height: 100%;
+  text-align: left;
 }
 
 .formatted-email strong {
   font-weight: bold;
-  color: #1a73e8;
+  color: #000000;
 }
 
 /* Links in the email */
 .formatted-email a {
-  color: #1a73e8;
+  color: #000000;
   text-decoration: underline;
   font-size: inherit;
 }
@@ -139,7 +140,6 @@ body, html {
 }
 
 main {
-  text-align: center;
   padding: 1em;
   margin: 0 auto;
 }
