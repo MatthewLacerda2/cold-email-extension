@@ -25,7 +25,7 @@ export const Popup = () => {
 
   return (
     <main>
-      <h3>Popup Page</h3>
+      <h3>Debug is on the table Page</h3>
       <div className="calc">
         <button onClick={minus} disabled={count <= 0}>
           -
