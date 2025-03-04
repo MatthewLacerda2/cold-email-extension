@@ -154,8 +154,14 @@ export const SidePanel = () => {
 
   return (
     <main className="content-viewer">
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        marginBottom: '10px', 
+        justifyContent: 'space-between',
+        height: '40px' // Fixed height container to ensure alignment
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
           <button 
             onClick={fetchContent} 
             className="reload-button"
@@ -169,12 +175,20 @@ export const SidePanel = () => {
               color: '#FF8C00',
               display: 'flex',
               alignItems: 'center',
-              padding: '0'
+              padding: '0',
+              height: '100%' // Match parent height
             }}
           >
             ⟳
           </button>
-          <h3 className="app-title"><strong>Cold Email Generator</strong></h3>
+          <h3 className="app-title" style={{ 
+            margin: '0', 
+            display: 'flex', 
+            alignItems: 'center',
+            height: '100%' // Match parent height
+          }}>
+            <strong>Cold Email Generator</strong>
+          </h3>
         </div>
         <button
           onClick={() => setIsEditMode(!isEditMode)}
@@ -186,7 +200,9 @@ export const SidePanel = () => {
             padding: '4px 8px',
             cursor: 'pointer',
             fontSize: '12px',
-            color: isEditMode ? '#4a90e2' : '#666'
+            color: isEditMode ? '#4a90e2' : '#666',
+            height: '28px', // Fixed height for the button
+            alignSelf: 'center' // Center vertically in the parent container
           }}
         >
           {isEditMode ? "Preview" : "Edit"}
