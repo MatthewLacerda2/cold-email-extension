@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchWebpageContent } from '../contentScript/r_jina_ai'
+import { generateEmailFromWebpage } from '../contentScript/gemini'
 import './SidePanel.css'
 
 interface PageMetadata {
@@ -11,6 +12,7 @@ interface PageMetadata {
 export const SidePanel = () => {
   const [content, setContent] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [loadingStatus, setLoadingStatus] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [metadata, setMetadata] = useState<PageMetadata>({
     title: '',
@@ -22,6 +24,7 @@ export const SidePanel = () => {
     // Get the URL of the current active tab when the panel opens
     const fetchContent = async () => {
       setIsLoading(true)
+      setLoadingStatus('Waiting for Jina...')
       setError(null)
       
       try {
@@ -73,17 +76,28 @@ export const SidePanel = () => {
             }
           }
           
-          // Fetch the content using our function
+          // Fetch the content using Jina
           const pageContent = await fetchWebpageContent(currentUrl)
-          setContent(pageContent)
+          
+          // Now generate email with Gemini
+          setLoadingStatus('Waiting for Gemini...')
+          const generatedEmail = await generateEmailFromWebpage(
+            metadata.title,
+            metadata.description,
+            pageContent
+          )
+          
+          // Set the generated email as content
+          setContent(generatedEmail)
         } else {
           setError('No active tab found')
         }
       } catch (err) {
-        setError(`Error fetching content: ${err instanceof Error ? err.message : String(err)}`)
+        setError(`Error: ${err instanceof Error ? err.message : String(err)}`)
         console.error('Error:', err)
       } finally {
         setIsLoading(false)
+        setLoadingStatus('')
       }
     }
 
@@ -92,36 +106,20 @@ export const SidePanel = () => {
 
   return (
     <main className="content-viewer">
-      <h3>Webpage Content</h3>
+      <h3>Cold Email Generator</h3>
       
-      <div className="metadata-section">
-        <div className="metadata-item">
-          <span className="metadata-label">Title:</span>
-          <span className="metadata-value">{metadata.title}</span>
+      {isLoading && (
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          <div className="loading-text">{loadingStatus}</div>
         </div>
-        
-        {metadata.description && (
-          <div className="metadata-item">
-            <span className="metadata-label">Description:</span>
-            <span className="metadata-value">{metadata.description}</span>
-          </div>
-        )}
-        
-        {metadata.keywords.length > 0 && (
-          <div className="metadata-item">
-            <span className="metadata-label">Keywords:</span>
-            <span className="metadata-value">{metadata.keywords.join(', ')}</span>
-          </div>
-        )}
-      </div>
-      
-      {isLoading && <div className="loading">Loading content...</div>}
+      )}
       
       {error && <div className="error">{error}</div>}
       
       {!isLoading && !error && (
         <div className="content-container">
-          <div className="content-label">Content:</div>
+          <div className="content-label">Generated Email:</div>
           <pre className="content-display">{content}</pre>
         </div>
       )}
