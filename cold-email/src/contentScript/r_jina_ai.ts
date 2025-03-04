@@ -16,11 +16,9 @@ export async function fetchWebpageContent(url: string): Promise<string> {
     
     let content = await response.text();
     
-    // Process image markdown syntax
-    // Find all occurrences of "![Image " and process them
     const imageRegex = /!\[Image[^\]]*\]\([^)]*\)/g;
     content = content.replace(imageRegex, (match) => {
-      // Extract just the image description part
+      
       const descriptionMatch = match.match(/!\[(Image[^\]]*)\]/);
       if (descriptionMatch && descriptionMatch[1]) {
         return `![${descriptionMatch[1]}]`;

@@ -55,20 +55,3 @@ export async function generateEmailFromWebpage(
     throw new Error(`Failed to generate email: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
-
-// Example usage:
-// 
-// import { generateEmailFromWebpage } from './gemini';
-// 
-// async function example() {
-//   try {
-//     const email = await generateEmailFromWebpage(
-//       "Company XYZ - Enterprise Solutions",
-//       "Leading provider of enterprise software solutions for businesses of all sizes",
-//       "Detailed content about the company's products and services..."
-//     );
-//     console.log(email);
-//   } catch (error) {
-//     console.error("Failed:", error);
-//   }
-// }
